@@ -22,10 +22,9 @@ namespace MipSdkRazorSample.Services
         /// <param name="configuration"></param>
         public MipService(IConfiguration configuration)
         {         
-            _fileEngines = new List<IFileEngine>();
-
             _configuration = configuration;
-
+            _fileEngines = new List<IFileEngine>();
+            
             // Create application info using config settings. 
             ApplicationInfo appInfo = new ApplicationInfo()
             {

@@ -94,12 +94,12 @@ The application registration will be created.
    3. **ApplicationName**: The name you'd like to give the app. This is what appears in MIP audit logs.
    4. **Version**: The app version that appears in MIP audit logs.
 6. Expand **Connected Services** and then right-click and **Manage User Secrets** on Secrets.json.
-7. Insert the application secret from the previous section and save. 
+7. From a commandline, run the following commands, inserting your app secret and project path:
 
-```json
-{
-  "AzureAD:ClientSecret": "YOUR APP SECRET"
-}
+```powershell
+dotnet user-secrets init
+dotnet user-secrets set "App:425DemoApiKey" "<YOUR SECRET>" --project "<PATH TO PROJECT>\MipSDK-File-Razor-Sample\MipSdkRazorSample\"
+dotnet user-secrets set "AzureAd:ClientSecret" "<YOUR SECRET>"
 ```
 
 8. Run the application. 

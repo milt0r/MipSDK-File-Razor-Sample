@@ -6,18 +6,21 @@ using System.Security.Policy;
 namespace MipSdkRazorSample.Services
 {
     public class AuthDelegateImpl : IAuthDelegate
-    {        
+    {
+        private readonly IConfiguration _configuration;
         private readonly string _redirectUri;
         private readonly string _tenantId;
         private readonly string _clientId;
         private readonly string _secret;
-      
+
         public AuthDelegateImpl(IConfiguration configuration)
         {
+            _configuration = configuration;
+            
             _redirectUri = "https://localhost:7143" + configuration.GetSection("AzureAd").GetValue<string>("CallbackPath");
-            _tenantId = configuration.GetSection("AzureAd").GetValue<string>("TenantId");            
+            _tenantId = configuration.GetSection("AzureAd").GetValue<string>("TenantId");
             _clientId = configuration.GetSection("AzureAd").GetValue<string>("ClientId");
-            _secret = configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"); 
+            _secret = _configuration["App:MipApiKey"];
         }
 
         public string AcquireToken(Identity identity, string authority, string resource, string claims)
