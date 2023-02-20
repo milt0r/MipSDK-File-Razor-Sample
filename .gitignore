@@ -351,5 +351,5 @@ MigrationBackup/
 
 *.db-shm
 *.db-wal
-*.db
+EmployeeSample.db
 /.vscode
