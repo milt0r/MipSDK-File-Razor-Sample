@@ -1,0 +1,15 @@
+﻿@page
+@model MipSdkRazorSample.Pages.PdfImport.IndexModel
+@{
+}
+
+<form method="post" enctype="multipart/form-data">
+    <input type="file" asp-for="Upload" />
+    <input type="submit" />
+</form>
+
+<br /><br />
+<h3>The best way to import is to export, modify, and re-upload.</h3>
+<b>
+@Model.Result
+</b>

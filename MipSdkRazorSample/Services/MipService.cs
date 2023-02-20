@@ -79,6 +79,41 @@ namespace MipSdkRazorSample.Services
             // Commit the change and write to the outputStream. 
             handler.CommitAsync(outputStream).GetAwaiter().GetResult();            
             return outputStream;
+        }
+
+        public MemoryStream RemoveProtection(Stream inputStream, string fileName, string labelId, string userId)
+        {
+            // Get a delegated engine because we want the access check to be in the context of the user.
+            IFileEngine engine = GetDelegatedEngine(userId);
+
+            // Create a file handler.
+            IFileHandler handler = engine.CreateFileHandlerAsync(inputStream, fileName, true).GetAwaiter().GetResult();
+            
+            // Validate that the handler is protected. If not, throw.
+            if(handler.Protection != null)
+            {
+                // Perform an access check to validate that the user has rights to remove protection.
+                // This could probably be in a more generic helper function. 
+                if(handler.Protection.AccessCheck(Rights.Export) || handler.Protection.AccessCheck(Rights.Owner))
+                {
+                    handler.RemoveProtection();
+                }
+                else
+                {
+                    // User doesn't have rights to remove access, so throw access denied. 
+                    throw new Microsoft.InformationProtection.Exceptions.AccessDeniedException("User doesn't have rights to remove protection.");
+                }
+            }
+            else
+            {
+                throw new Microsoft.InformationProtection.Exceptions.BadInputException("File not protected.");
+            }
+            
+            MemoryStream outputStream = new MemoryStream();
+
+            // Commit the change and write to the outputStream. 
+            handler.CommitAsync(outputStream).GetAwaiter().GetResult();            
+            return outputStream;
         }        
 
         /// <summary>
