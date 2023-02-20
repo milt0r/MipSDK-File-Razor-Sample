@@ -7,7 +7,7 @@ namespace MipSdkRazorSample.Models
     public class SeedData
     {
         public static void Initialize(IServiceProvider serviceProvider)
-        {
+        {            
             using (var context = new MipSdkRazorSampleContext(serviceProvider.GetRequiredService<DbContextOptions<MipSdkRazorSampleContext>>()))
             {                
                 if (context == null || context.DataPolicy == null)

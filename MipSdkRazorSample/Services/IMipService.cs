@@ -14,6 +14,9 @@ namespace MipSdkRazorSample.Services
         public bool IsLabeledOrProtected(Stream inputStream);
         public bool IsProtected(Stream inputStream);
         public MemoryStream ApplyMipLabel(Stream inputStream, string labelId);
-        public Stream GetTemporaryDecryptedStream(Stream inputStream, string userId);          
+        public Stream GetTemporaryDecryptedStream(Stream inputStream, string userId);
+        public string GetDefaultLabel(string userId);          
+
+        // Add removeprotection
     }
 }

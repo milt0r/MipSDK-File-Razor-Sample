@@ -291,6 +291,13 @@ namespace MipSdkRazorSample.Services
             return engine;
         }
 
+        public string GetDefaultLabel(string userId)
+        {
+            IFileEngine engine;
+           
+            engine = GetDelegatedEngine(userId);
 
+            return engine.DefaultSensitivityLabel.Id ?? string.Empty;       
+        }          
     }
 }

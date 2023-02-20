@@ -28,35 +28,49 @@ namespace MipSdkRazorSample.Pages.EmployeeData
         {
             _context = context;
 
-            _excelService = _context.GetService<IExcelService>(); 
+            _excelService = _context.GetService<IExcelService>();
             _mipApi = _context.GetService<IMipService>();
-            _userId = _context.GetService<IHttpContextAccessor>().HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Subject.Name;
+            _userId = _context.GetService<IHttpContextAccessor>().HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Subject.Name;            
         }
 
-        public IList<Employee> Employees { get;set; }
+        public IList<Employee> Employees { get; set; }
         public DataPolicy DataPolicy { get; set; }
-        
+
         public IList<MipLabel> MipLabel { get; set; }
 
 
         public async Task OnGetAsync()
         {
             MipLabel = _mipApi.GetMipLabels(_userId);
+
+            // Sets default to default label. If not set, defaults to first label in list.
+            if (_context.DataPolicy.First(d => d.PolicyName == "Download Policy").MinLabelIdForAction == "000")
+            {                
+                _context.DataPolicy.First(d => d.PolicyName == "Download Policy" && d.MinLabelIdForAction == "000").MinLabelIdForAction = _mipApi.GetDefaultLabel(_userId) ?? MipLabel.First().Id;                             
+            }       
+            
             DataPolicy = _context.DataPolicy.First(d => d.PolicyName == "Download Policy");
             Employees = await _context.Employees.ToListAsync();
         }
 
         // Referenced this: https://www.aspsnippets.com/Articles/ASPNet-Core-Razor-Pages-Export-to-Excel.aspx
         public FileResult OnPostExport()
-        {
-            string labelId = _context.DataPolicy.First(d => d.PolicyName == "Download Policy").MinLabelIdForAction;
+        {            
+            string labelId; 
+            if(_context.DataPolicy.First(d => d.PolicyName == "Download Policy").MinLabelIdForAction == "000")
+            {
+                labelId = _mipApi.GetDefaultLabel(_userId);
+            }
+            else
+            {
+                labelId = _context.DataPolicy.First(d => d.PolicyName == "Download Policy").MinLabelIdForAction;
+            }
 
             var excelStream = _excelService.GenerateEmployeeExport(_context.Employees.ToList());
             MemoryStream? mipStream = _mipApi.ApplyMipLabel(excelStream, labelId);
             mipStream.Position = 0;
 
             return File(mipStream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "EmployeeData.xlsx");
-
-        }
+        }        
     }
 }
