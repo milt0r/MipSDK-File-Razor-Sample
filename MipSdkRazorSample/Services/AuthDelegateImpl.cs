@@ -17,9 +17,9 @@ namespace MipSdkRazorSample.Services
         {
             _configuration = configuration;
             
-            _redirectUri = "https://localhost:7143" + configuration.GetSection("AzureAd").GetValue<string>("CallbackPath");
-            _tenantId = configuration.GetSection("AzureAd").GetValue<string>("TenantId");
-            _clientId = configuration.GetSection("AzureAd").GetValue<string>("ClientId");
+            _redirectUri = "https://localhost:7143" + _configuration.GetSection("AzureAd").GetValue<string>("CallbackPath");
+            _tenantId = _configuration.GetSection("AzureAd").GetValue<string>("TenantId");
+            _clientId = _configuration.GetSection("AzureAd").GetValue<string>("ClientId");
             _secret = _configuration["App:MipApiKey"];
         }
 

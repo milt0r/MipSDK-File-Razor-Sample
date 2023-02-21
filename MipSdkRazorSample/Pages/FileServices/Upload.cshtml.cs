@@ -8,25 +8,25 @@ using MipSdkRazorSample.Services;
 using System.Linq;
 using System.Security.Claims;
 
-namespace MipSdkRazorSample.Pages.PdfImport
+namespace MipSdkRazorSample.Pages.FileServices
 {
-    public class IndexModel : PageModel
+    public class UploadModel : PageModel
     {
-        private readonly IExcelService _excelService;
+        private readonly IAzureStorageService _azureStorageService;
         private readonly MipSdkRazorSample.Data.MipSdkRazorSampleContext _context;
         private readonly IMipService _mipApi;
         private readonly string? _userId;
 
-
-
         [BindProperty]
         public IFormFile? Upload { get; set; }
 
-        public IndexModel(MipSdkRazorSample.Data.MipSdkRazorSampleContext context)
+        public UploadModel(MipSdkRazorSample.Data.MipSdkRazorSampleContext context)
         {
+             // Change this to read name from POST            
             _context = context;
 
-            _excelService = _context.GetService<IExcelService>();
+            // Do I need anything here? Maybe change this to write to blob? New service.
+            _azureStorageService = _context.GetService<IAzureStorageService>();
             _mipApi = _context.GetService<IMipService>();
             _userId = _context.GetService<IHttpContextAccessor>().HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Subject.Name;
         }
@@ -35,37 +35,46 @@ namespace MipSdkRazorSample.Pages.PdfImport
 
         public IList<Employee> Employees { get; set; }
 
-        public IList<MipLabel> MipLabels { get; set; }  
+        public IList<MipLabel> MipLabels { get; set; }
         public string? Result { get; set; }
 
         public async Task<IActionResult> OnPostAsync()
         {
             MemoryStream uploadStream = new();
 
+            FileData FileData = new FileData();
+                        
             // Fetch policy for downloaded files.
             // If the labeled file is more sensitive that policy, upload is rejected.            
             DataPolicy = _context.DataPolicy.First(d => d.PolicyName == "Upload Policy");
-                        
+
             // Upload file to uploadStream
             if (Upload != null)
-            {
+            {                
                 await Upload.CopyToAsync(uploadStream);
+                FileData.FileName = Upload.FileName;
+                FileData.Size = Upload.Length;   
+                FileData.Owner = _userId;             
             }
-            
+
+            // Make sure we have _mipApi initialized and a userId. 
             if (_mipApi != null && _userId != null)
             {
                 uploadStream.Position = 0;
 
                 ContentLabel label;
-                List<Employee> EmployeeUpload = new List<Employee>();
-
+                                
+                // Can probably move all this to a helper. 
                 try
-                {
-                    // Validate that the file is labeled or protected. If not, skip to direct upload.
-                    if (_mipApi.IsLabeledOrProtected(uploadStream))
+                {                    
+                    if (_mipApi.IsLabeledOrProtected(uploadStream, FileData.FileName))
                     {
                         // Read the file label.
-                        label = _mipApi.GetFileLabel(_userId, uploadStream);
+                        label = _mipApi.GetFileLabel(_userId, uploadStream, FileData.FileName);
+
+                        FileData.LabelId = label.Label.Id;
+                        
+                        System.Console.WriteLine("**** Read Label: {0}", label.Label.Id);
 
                         // Check the file label against upload policy.
                         // If file is more sensitive than policy allows, store message in Result and fall to return. 
@@ -84,43 +93,27 @@ namespace MipSdkRazorSample.Pages.PdfImport
                             localStream = uploadStream;
                             
                             // If it's a protected file, we need to get a decrypted copy. 
-                            if (_mipApi.IsProtected(uploadStream))
+                            if (_mipApi.IsProtected(uploadStream, FileData.FileName))
                             {
-                                localStream = _mipApi.GetTemporaryDecryptedStream(uploadStream, _userId);
+                                FileData.IsProtected = true;  
+                                                              
+                                //localStream = _mipApi.GetTemporaryDecryptedStream(uploadStream, _userId);
+                                localStream = _mipApi.RemoveProtection(uploadStream, FileData.FileName, _mipApi.GetFileLabel(_userId, uploadStream, FileData.FileName).Label.Id, _userId);
+                            }
+                            
+                            try
+                            {
+                                localStream.Position = 0;
+                                await _azureStorageService.UploadStream(localStream, FileData.FileName);                                
+                                Result = String.Format("Successfully uploaded file.");
                             }
 
-                            // Pass the decrypted (or never encrypted) version to the upload parser. 
-                            EmployeeUpload = _excelService.ParseUpload(localStream);
-
-                            // Attempt to update the data model. 
-                            if (!UpdateEmployees(EmployeeUpload).GetAwaiter().GetResult())
+                            catch (Exception ex)
                             {
-                                return NotFound();
+                                Result = String.Format("Failed to upload file with exception {0}", ex.Message);
                             }
-                                                       
-                            if (label.Label.Parent.Id == null)
-                                Result = String.Format("Successfully to uploaded file with label: {0}", label.Label.Name);
-                            else
-                                Result = String.Format("Successfully to uploaded file with label: {0} - {1}", label.Label.Parent.Name, label.Label.Name);
                         }
-                    }
-
-                    // If we hit here, it's an unlabeled and unprotected file. 
-                    else 
-                    {
-                        Result = String.Format("Uploaded file isn't labeled or protected.");
-
-                        // Pass the decrypted (or never encrypted) version to the upload parser. 
-                        EmployeeUpload = _excelService.ParseUpload(uploadStream);
-
-                        // Attempt to update the data model. 
-                        if (!UpdateEmployees(EmployeeUpload).GetAwaiter().GetResult())
-                        {
-                            return NotFound();
-                        }
-                        
-                        Result = String.Format("Successfully uploaded file.");
-                    }
+                    }                    
                 }
 
                 catch (Microsoft.InformationProtection.Exceptions.NoAuthTokenException)
@@ -136,9 +129,14 @@ namespace MipSdkRazorSample.Pages.PdfImport
                 catch (Microsoft.InformationProtection.Exceptions.AccessDeniedException)
                 {
                     Result = "User doesn't have rights to uploaded file.";
-                }                
+                }
             }
-            return Page();
+
+            _context.FileData.Add(FileData);
+            await _context.SaveChangesAsync();
+
+            //return Page();
+            return RedirectToPage("./Index");
         }
 
         private bool EmployeesExists(int id)
@@ -183,7 +181,7 @@ namespace MipSdkRazorSample.Pages.PdfImport
 
                 try
                 {
-                    await _context.SaveChangesAsync();                    
+                    await _context.SaveChangesAsync();
                 }
 
                 catch (DbUpdateConcurrencyException)
@@ -197,7 +195,7 @@ namespace MipSdkRazorSample.Pages.PdfImport
                     {
                         throw;
                     }
-                }                
+                }
             }
             return true;
         }

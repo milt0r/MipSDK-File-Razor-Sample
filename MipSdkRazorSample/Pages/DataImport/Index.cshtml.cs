@@ -17,6 +17,7 @@ namespace MipSdkRazorSample.Pages.DataImport
         private readonly IMipService _mipApi;
         private readonly string? _userId;
 
+        private readonly string _fileName;
 
 
         [BindProperty]
@@ -24,6 +25,8 @@ namespace MipSdkRazorSample.Pages.DataImport
 
         public IndexModel(MipSdkRazorSample.Data.MipSdkRazorSampleContext context)
         {
+            _fileName = "UploadedExcel.xlsx";
+
             _context = context;
 
             _excelService = _context.GetService<IExcelService>();
@@ -62,10 +65,10 @@ namespace MipSdkRazorSample.Pages.DataImport
                 try
                 {
                     // Validate that the file is labeled or protected. If not, skip to direct upload.
-                    if (_mipApi.IsLabeledOrProtected(uploadStream))
+                    if (_mipApi.IsLabeledOrProtected(uploadStream, _fileName))
                     {
                         // Read the file label.
-                        label = _mipApi.GetFileLabel(_userId, uploadStream);
+                        label = _mipApi.GetFileLabel(_userId, uploadStream, _fileName);
 
                         // Check the file label against upload policy.
                         // If file is more sensitive than policy allows, store message in Result and fall to return. 
@@ -84,9 +87,9 @@ namespace MipSdkRazorSample.Pages.DataImport
                             localStream = uploadStream;
                             
                             // If it's a protected file, we need to get a decrypted copy. 
-                            if (_mipApi.IsProtected(uploadStream))
+                            if (_mipApi.IsProtected(uploadStream, _fileName))
                             {
-                                localStream = _mipApi.GetTemporaryDecryptedStream(uploadStream, _userId);
+                                localStream = _mipApi.GetTemporaryDecryptedStream(uploadStream, _userId, _fileName);
                             }
 
                             // Pass the decrypted (or never encrypted) version to the upload parser. 

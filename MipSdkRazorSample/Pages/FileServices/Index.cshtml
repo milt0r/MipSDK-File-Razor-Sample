@@ -1,0 +1,54 @@
+﻿@page
+@model MipSdkRazorSample.Pages.FileServices.IndexModel
+@{
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.FileDataList[0].FileName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FileDataList[0].Size)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FileDataList[0].LabelId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FileDataList[0].IsProtected)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FileDataList[0].Owner)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.FileDataList) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.FileName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Size)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LabelId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsProtected)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Owner)
+            </td>            
+            <td>                
+                <a asp-page="./Delete" asp-route-id="@item.ID">Delete</a>
+                <a asp-page="./Download" asp-route-id="@item.ID">Download</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<a class="nav-link text-dark" asp-area="" asp-page="/FileServices/Upload"><br>Upload New File</b></a>

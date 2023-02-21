@@ -48,6 +48,8 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 builder.Services.AddSingleton<IExcelService, ExcelService>();
 
+builder.Services.AddSingleton<IAzureStorageService, AzureStorageService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

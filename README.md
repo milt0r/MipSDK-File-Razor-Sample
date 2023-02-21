@@ -82,6 +82,14 @@ The application registration will be created.
 5. Copy the value somewhere safe.
 > For production applications, it's recommended that you use certificates instead of app secrets.
 
+### Configure Azure Storage
+
+- Install Azurite: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio-code
+- From the VSCode command palette, run "Azurite: Start Blob Service".
+
+> This sample application uses the default Azurite connection string. If you change your storage account or key, you'll need to update the sample. 
+
+
 ### Quickstart
 
 1. `git clone https://github.com/Azure-Samples/Mip-FileSdk-Razor-Sample.git`
@@ -103,6 +111,6 @@ dotnet user-secrets set "AzureAd:ClientSecret" "<YOUR SECRET>"
 ```
 
 8. Run the application. 
-9.  Go to the SecurityPolicy tab to set labels for upload and download before using other functions.
+9. Go to the SecurityPolicy tab to set labels for upload and download before using other functions.
 
 

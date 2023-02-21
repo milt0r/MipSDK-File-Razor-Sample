@@ -67,7 +67,7 @@ namespace MipSdkRazorSample.Pages.EmployeeData
             }
 
             var excelStream = _excelService.GenerateEmployeeExport(_context.Employees.ToList());
-            MemoryStream? mipStream = _mipApi.ApplyMipLabel(excelStream, labelId);
+            MemoryStream? mipStream = _mipApi.ApplyMipLabel(excelStream, labelId, "EmployeeFile.xlsx");
             mipStream.Position = 0;
 
             return File(mipStream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "EmployeeData.xlsx");

@@ -18,5 +18,7 @@ namespace MipSdkRazorSample.Data
         public DbSet<MipSdkRazorSample.Models.Employee> Employees { get; set; }
 
         public DbSet<MipSdkRazorSample.Models.DataPolicy> DataPolicy { get; set; }
+
+        public DbSet<MipSdkRazorSample.Models.FileData> FileData {get;set;}
     }
 }

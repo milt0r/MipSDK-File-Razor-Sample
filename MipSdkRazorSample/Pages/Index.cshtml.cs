@@ -14,14 +14,7 @@ namespace MipSdkRazorSample.Pages
 
         public IndexModel(ILogger<IndexModel> logger, GraphServiceClient graphServiceClient)
         {
-            _logger = logger;
-            _graphServiceClient = graphServiceClient;
-        }
-
-        public async Task OnGet()
-        {
-            //var user = await _graphServiceClient.Me.Request().GetAsync();
-            //ViewData["GraphApiResult"] = user.DisplayName;            
-        }
+            _logger = logger;            
+        }        
     }
 }
