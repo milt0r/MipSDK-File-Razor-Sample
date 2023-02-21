@@ -17,8 +17,10 @@ This ASP.NET Core Razor application demonstrates using [Microsoft Information Pr
 
 This project framework provides the following features:
 
-* Demonstrates labeling a file on download.
-* Demonstrates performing `isProtected()` and `AccessCheck` then generating a decrypted file for upload. 
+* Labeling a file on download.
+* Performing `isProtected()` and `AccessCheck` then generating a decrypted file for upload. 
+* Uploading and removing protection from a file. 
+* Applying protection to a file on download. 
 
 ## Getting Started
 
@@ -26,8 +28,10 @@ This project framework provides the following features:
 
 - A supported version of Windows
 - .NET 6.0
-- [Microsoft Information Protection SDK](https://aka.ms/mipsdkdocs) 1.11 or later
-- Visual Studio 2022
+- [Microsoft Information Protection SDK](https://aka.ms/mipsdkdocs) 1.12 or later
+- Visual Studio Code
+- Azurite Extension
+
 
 ### App Registration
 
@@ -53,7 +57,7 @@ The application registration will be created.
 2. Select **Add a permission**.
 3. Select **Microsoft APIs** if it's not already selected.
 4. Select **Azure Rights Management Services**.
-5. Select **Applications Permissions** and then **Content.DelegatedReader** and **Content.DelegatedWriter**.
+5. Select **Applications Permissions** and then **Content.DelegatedReader** and **Content.DelegatedWriter** and **Content.SuperUser**
 6. Select **Add permissions**.
 7. Again, select **Add a permission**.
 8. Select **APIs my organization uses**.
@@ -106,8 +110,9 @@ The application registration will be created.
 
 ```powershell
 dotnet user-secrets init
-dotnet user-secrets set "App:425DemoApiKey" "<YOUR SECRET>" --project "<PATH TO PROJECT>\MipSDK-File-Razor-Sample\MipSdkRazorSample\"
-dotnet user-secrets set "AzureAd:ClientSecret" "<YOUR SECRET>"
+dotnet user-secrets set "App:MipApiKey" "<APP SECRET>" --project "c:\<PROJECT PATH>\MipSDK-File-Razor-Sample\MipSdkRazorSample\"
+dotnet user-secrets set "AzureAd:ClientSecret" "<APP SECRET>"
+dotnet user-secrets set "App:StorageSecret" "<STORAGE KEY>"
 ```
 
 8. Run the application. 
